@@ -8,7 +8,7 @@
   "authors": ["FiesClient"],
   "environment": "client",
   "entrypoints": {
-    "main": [
+    "client": [
       "dev.fiesclient.FiesClient"
     ]
   },
