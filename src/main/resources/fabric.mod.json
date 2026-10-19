@@ -1,0 +1,21 @@
+
+{
+  "schemaVersion": 1,
+  "id": "fiesclient",
+  "version": "${version}",
+  "name": "FiesClient",
+  "description": "A custom burgundy-themed Fabric client for Minecraft.",
+  "authors": ["FiesClient"],
+  "environment": "client",
+  "entrypoints": {
+    "main": [
+      "dev.fiesclient.FiesClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
