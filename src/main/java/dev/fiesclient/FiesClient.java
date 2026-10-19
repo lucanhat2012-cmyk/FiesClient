@@ -6,17 +6,13 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FiesClient implements ClientModInitializer {
     public static final String MOD_ID = "fiesclient";
-    public static final Logger LOGGER =
-            LoggerFactory.getLogger(MOD_ID);
-
     private static KeyMapping openGuiKey;
 
     @Override
@@ -34,113 +30,122 @@ public class FiesClient implements ClientModInitializer {
                 client.setScreen(new FiesClickGui());
             }
         });
-
-        LOGGER.info("FiesClient initialized!");
     }
 
     public static class FiesClickGui extends Screen {
-        private static final int WINE = 0xFF321322;
-        private static final int PINK = 0xFFFF8FCB;
-        private static final int PANEL = 0xFF1D101B;
+        private static final int BACKGROUND = 0xE9160D16;
+        private static final int PANEL = 0xFF281725;
+        private static final int ACCENT = 0xFFFF83C8;
+        private static final int TEXT = 0xFFFFEAF6;
+        private static final int MUTED = 0xFFBFA8BA;
+
+        private String category = "Visuals";
+
+        private final String[] categories = {
+            "Visuals", "Animations", "Player",
+            "Camera", "Sounds", "Interface"
+        };
 
         protected FiesClickGui() {
             super(Component.literal("FiesClient"));
         }
 
         @Override
-        protected void init() {
-            int centerX = width / 2;
-            int centerY = height / 2;
+        public void render(
+            GuiGraphics g, int mouseX, int mouseY, float delta
+        ) {
+            g.fill(0, 0, width, height, BACKGROUND);
 
-            addRenderableWidget(
-                net.minecraft.client.gui.components.Button.builder(
-                    Component.literal("Visuals"),
-                    button -> showCategory("Visuals")
-                ).bounds(centerX - 145, centerY - 65, 120, 28).build()
-            );
+            int panelW = Math.min(500, width - 24);
+            int panelH = Math.min(300, height - 24);
+            int x = (width - panelW) / 2;
+            int y = (height - panelH) / 2;
 
-            addRenderableWidget(
-                net.minecraft.client.gui.components.Button.builder(
-                    Component.literal("Animations"),
-                    button -> showCategory("Animations")
-                ).bounds(centerX - 15, centerY - 65, 120, 28).build()
-            );
+            g.fill(x, y, x + panelW, y + panelH, PANEL);
+            g.fill(x, y, x + panelW, y + 3, ACCENT);
 
-            addRenderableWidget(
-                net.minecraft.client.gui.components.Button.builder(
-                    Component.literal("Player"),
-                    button -> showCategory("Player")
-                ).bounds(centerX - 145, centerY - 30, 120, 28).build()
-            );
+            g.drawString(font, "FiesClient", x + 16, y + 14, ACCENT);
+            g.drawString(font, "1.21.11", x + panelW - 62,
+                y + 14, MUTED);
 
-            addRenderableWidget(
-                net.minecraft.client.gui.components.Button.builder(
-                    Component.literal("Camera"),
-                    button -> showCategory("Camera")
-                ).bounds(centerX - 15, centerY - 30, 120, 28).build()
-            );
+            int sideX = x + 12;
+            int sideY = y + 42;
+            int sideW = 118;
 
-            addRenderableWidget(
-                net.minecraft.client.gui.components.Button.builder(
-                    Component.literal("Sounds"),
-                    button -> showCategory("Sounds")
-                ).bounds(centerX - 145, centerY + 5, 120, 28).build()
-            );
+            for (int i = 0; i < categories.length; i++) {
+                int cy = sideY + i * 32;
+                boolean selected = categories[i].equals(category);
 
-            addRenderableWidget(
-                net.minecraft.client.gui.components.Button.builder(
-                    Component.literal("Interface"),
-                    button -> showCategory("Interface")
-                ).bounds(centerX - 15, centerY + 5, 120, 28).build()
-            );
+                if (selected) {
+                    g.fill(sideX, cy, sideX + sideW, cy + 27,
+                        0xFF63304F);
+                    g.fill(sideX, cy, sideX + 3, cy + 27, ACCENT);
+                } else if (mouseX >= sideX && mouseX <= sideX + sideW
+                    && mouseY >= cy && mouseY <= cy + 27) {
+                    g.fill(sideX, cy, sideX + sideW, cy + 27,
+                        0xFF392438);
+                }
 
-            addRenderableWidget(
-                net.minecraft.client.gui.components.Button.builder(
-                    Component.literal("Close"),
-                    button -> onClose()
-                ).bounds(centerX - 60, centerY + 55, 120, 28).build()
-            );
-        }
-
-        private void showCategory(String category) {
-            if (Minecraft.getInstance().player != null) {
-                Minecraft.getInstance().player.displayClientMessage(
-                    Component.literal("FiesClient: " + category),
-                    true
-                );
+                g.drawString(font, categories[i],
+                    sideX + 12, cy + 9, selected ? TEXT : MUTED);
             }
+
+            int contentX = sideX + sideW + 16;
+            int contentY = sideY;
+
+            g.drawString(font, category, contentX, contentY, ACCENT);
+            g.fill(contentX, contentY + 17,
+                x + panelW - 14, contentY + 18, 0xFF624052);
+
+            g.drawString(font, "Your modules will appear here.",
+                contentX, contentY + 32, TEXT);
+            g.drawString(font, "Tap a category to explore.",
+                contentX, contentY + 48, MUTED);
+
+            g.drawString(font, "RIGHT SHIFT  •  CLOSE",
+                x + 16, y + panelH - 19, MUTED);
         }
 
         @Override
-        public void render(
-            net.minecraft.client.gui.GuiGraphics graphics,
-            int mouseX,
-            int mouseY,
-            float delta
+        public boolean mouseClicked(
+            double mouseX, double mouseY, int button
         ) {
-            renderBackground(graphics, mouseX, mouseY, delta);
+            int panelW = Math.min(500, width - 24);
+            int panelH = Math.min(300, height - 24);
+            int x = (width - panelW) / 2;
+            int y = (height - panelH) / 2;
+            int sideX = x + 12;
+            int sideY = y + 42;
 
-            int left = width / 2 - 165;
-            int top = height / 2 - 100;
+            if (button == 0) {
+                for (int i = 0; i < categories.length; i++) {
+                    int cy = sideY + i * 32;
+                    if (mouseX >= sideX && mouseX <= sideX + 118
+                        && mouseY >= cy && mouseY <= cy + 27) {
+                        category = categories[i];
+                        return true;
+                    }
+                }
+            }
 
-            graphics.fill(
-                left, top, left + 330, top + 205, WINE
-            );
-            graphics.fill(
-                left + 5, top + 5,
-                left + 325, top + 200, PANEL
-            );
+            return super.mouseClicked(mouseX, mouseY, button);
+        }
 
-            graphics.drawCenteredString(
-                font, "FiesClient",
-                width / 2, top + 15, PINK
-            );
-            graphics.drawCenteredString(
-                font, "BETA  •  1.21.11",
-                width / 2, top + 32, 0xFFE9D6E4
-            );
+        @Override
+        public boolean keyPressed(
+            int keyCode, int scanCode, int modifiers
+        ) {
+            if (keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT
+                || keyCode == GLFW.GLFW_KEY_ESCAPE) {
+                onClose();
+                return true;
+            }
+            return super.keyPressed(keyCode, scanCode, modifiers);
+        }
 
-            super.render(graphics, mouseX, mouseY, delta);
+        @Override
+        public void onClose() {
+            Minecraft.getInstance().setScreen(null);
         }
 
         @Override
